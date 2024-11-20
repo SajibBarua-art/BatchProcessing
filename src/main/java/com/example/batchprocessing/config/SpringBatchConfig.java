@@ -1,9 +1,11 @@
 package com.example.batchprocessing.config;
 
 import com.example.batchprocessing.entity.Customer;
+import com.example.batchprocessing.listener.StepSkipListener;
 import com.example.batchprocessing.repository.CustomerRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.SkipListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
@@ -78,6 +80,12 @@ public class SpringBatchConfig {
                 .processor(processor())
                 .writer(writer())
                 .taskExecutor(taskExecutor())
+                .faultTolerant()
+                //.skipLimit(100)
+                //.skip(NumberFormatException.class)
+                //.noSkip(IllegalArgumentException.class)
+                .listener(skipListener())
+                .skipPolicy(skipPolicy())
                 .build();
     }
 
@@ -92,5 +100,15 @@ public class SpringBatchConfig {
         SimpleAsyncTaskExecutor asyncTaskExecutor = new SimpleAsyncTaskExecutor();
         asyncTaskExecutor.setConcurrencyLimit(10);
         return asyncTaskExecutor;
+    }
+
+    @Bean
+    public ExceptionSkipPolicy skipPolicy(){
+        return new ExceptionSkipPolicy();
+    }
+
+    @Bean
+    public SkipListener skipListener(){
+        return new StepSkipListener();
     }
 }
